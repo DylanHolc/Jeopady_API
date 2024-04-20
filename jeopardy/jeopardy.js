@@ -18,8 +18,12 @@
 //    ...
 //  ]
 
-let categories = [];
+const categories = [2,3,4,6,8,9,10,11,12,13,14,15,17,18]
 
+// async function retrieveCategories() {
+//     const res = await axios.get(`https://rithm-jeopardy.herokuapp.com/api/categories?count=100`);
+//     console.log(res);
+// }
 
 /** Get NUM_CATEGORIES random category from API.
  *
@@ -27,6 +31,8 @@ let categories = [];
  */
 
 function getCategoryIds() {
+    let categoryIds = _.sampleSize(categories, 5);
+    return _.uniq(categoryIds);
 }
 
 /** Return object with data about a category:
@@ -41,7 +47,30 @@ function getCategoryIds() {
  *   ]
  */
 
-function getCategory(catId) {
+async function getCategory(catId) {
+    const res = await axios.get(`https://rithm-jeopardy.herokuapp.com/api/category?id=${catId}`);
+    // console.log(res);
+    let cluesArr = []
+    res.data.clues.forEach(element => {
+        cluesArr.push(element)
+    });
+    let categoryObj = new Object();
+    categoryObj.title = res.data.title
+    categoryObj.clues = cluesArr
+    console.log(categoryObj)
+    return categoryObj;
+    // let question = cluesArr[i].question
+    // let answer = cluesArr[i].answer
+    // console.log(cluesArr);
+}
+// This is just a function I made to try to get the data in a usable form I'm not sure if it has any legitimate utility
+// I've been running it like this: getData(getCategoryIds())
+function getData(arr) {
+    let categoriesArr = [];
+    arr.forEach(async(element) => {
+        categoriesArr.push(await getCategory(element))
+    });
+    return categoriesArr;
 }
 
 /** Fill the HTML table#jeopardy with the categories & cells for questions.
@@ -53,6 +82,8 @@ function getCategory(catId) {
  */
 
 async function fillTable() {
+  
+
 }
 
 /** Handle clicking on a clue: show the question or answer.
