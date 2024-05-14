@@ -5,3 +5,20 @@
   #8d2ab5
   #74119c
 */
+table,
+tr,
+td {
+  border: 1px solid black;
+}
+
+.null {
+  color: blue;
+}
+
+.question {
+  color: red;
+}
+
+.answer {
+  color: green;
+}

@@ -18,7 +18,20 @@
 //    ...
 //  ]
 
-const categories = [2,3,4,6,8,9,10,11,12,13,14,15,17,18]
+async function retrieveCategories() {
+
+    const res = await axios.get(
+
+        `https://rithm-jeopardy.herokuapp.com/api/categories?count=100`
+
+    );
+
+    return res.data.map(({ id }) => id); //[2,3,4,5,6...]
+
+}
+
+
+const categories = [2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
 
 // async function retrieveCategories() {
 //     const res = await axios.get(`https://rithm-jeopardy.herokuapp.com/api/categories?count=100`);
@@ -46,32 +59,48 @@ function getCategoryIds() {
  *      ...
  *   ]
  */
-
 async function getCategory(catId) {
-    const res = await axios.get(`https://rithm-jeopardy.herokuapp.com/api/category?id=${catId}`);
-    // console.log(res);
-    let cluesArr = []
-    res.data.clues.forEach(element => {
-        cluesArr.push(element)
-    });
-    let categoryObj = new Object();
-    categoryObj.title = res.data.title
-    categoryObj.clues = cluesArr
-    console.log(categoryObj)
-    return categoryObj;
-    // let question = cluesArr[i].question
-    // let answer = cluesArr[i].answer
-    // console.log(cluesArr);
+
+    const res = await axios.get(
+
+        `https://rithm-jeopardy.herokuapp.com/api/category?id=${catId}`
+
+    );
+
+    return {
+
+        title: res.data.title,
+
+        clues: res.data.clues.map(({ question, answer }) => ({
+
+            question,
+
+            answer,
+
+            showing: null,
+
+        })),
+
+    };
+
 }
-// This is just a function I made to try to get the data in a usable form I'm not sure if it has any legitimate utility
-// I've been running it like this: getData(getCategoryIds())
-function getData(arr) {
-    let categoriesArr = [];
-    arr.forEach(async(element) => {
-        categoriesArr.push(await getCategory(element))
+
+function addClueToTable(table, tableBody, data, clueIndex) {
+    const row = document.createElement('tr');
+    data.forEach((category, index) => {
+        const datacell = document.createElement('td');
+        datacell.className = `${category.clues[clueIndex].showing}`;
+        datacell.innerText = `${category.clues[clueIndex].question}`;
+        datacell.addEventListener('click', function (e) {
+            handleClick(e);
+        });
+        row.append(datacell);
+        tableBody.append(row);
     });
-    return categoriesArr;
+    table.append(tableBody);
+
 }
+
 
 /** Fill the HTML table#jeopardy with the categories & cells for questions.
  *
@@ -82,19 +111,44 @@ function getData(arr) {
  */
 
 async function fillTable() {
-  
+    const table = document.querySelector('#jeopardy');
+    let data = await setupAndStart()
+    const tableHead = document.createElement('thead');
+    const tableBody = document.createElement('tbody');
+
+    const firstRow = document.createElement('tr');
+    data.forEach((category, index) => {
+        firstRow.innerHTML += `<td>${category.title}</td>`
+        tableHead.append(firstRow);
+    });
+    table.append(tableHead);
+    for (let i = 0; i < 5; i++) {
+        addClueToTable(table, tableBody, data, i)
+    }
 
 }
+
+
 
 /** Handle clicking on a clue: show the question or answer.
  *
  * Uses .showing property on clue to determine what to show:
  * - if currently null, show question & set .showing to "question"
  * - if currently "question", show answer & set .showing to "answer"
- * - if currently "answer", ignore click
+ * - if currently "answer", ignore clicks
  * */
 
-function handleClick(evt) {
+function handleClick(e) {
+    if (e.target.className === 'null') {
+        e.target.className = 'question';
+    }
+    else if (e.target.className === 'question') {
+        e.target.className = 'answer';
+    }
+    else {
+        removeEventListener('click', function () {
+        });
+    }
 }
 
 /** Wipe the current Jeopardy board, show the loading spinner,
@@ -118,6 +172,21 @@ function hideLoadingView() {
  * */
 
 async function setupAndStart() {
+
+    const categories = await retrieveCategories();
+
+    const selectedCategories = getCategoryIds(categories);
+
+    //async
+
+    const promises = selectedCategories.map((catId) => getCategory(catId));
+
+    const responses = await Promise.all(promises);
+
+    console.log(responses);
+
+    return responses;
+
 }
 
 /** On click of start / restart button, set up game. */
