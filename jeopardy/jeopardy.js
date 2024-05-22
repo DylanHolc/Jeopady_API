@@ -44,7 +44,7 @@ const categories = [2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18]
  */
 
 function getCategoryIds() {
-    let categoryIds = _.sampleSize(categories, 5);
+    let categoryIds = _.sampleSize(categories, 6);
     return _.uniq(categoryIds);
 }
 
@@ -89,7 +89,7 @@ function addClueToTable(table, tableBody, data, clueIndex) {
     const row = document.createElement('tr');
     data.forEach((category, index) => {
         const datacell = document.createElement('td');
-        datacell.className = `${category.clues[clueIndex].showing}`;
+        datacell.dataset.showing = `${category.clues[clueIndex].showing}`;
         datacell.innerText = `${category.clues[clueIndex].question}`;
         datacell.addEventListener('click', function (e) {
             handleClick(e);
@@ -139,11 +139,11 @@ async function fillTable() {
  * */
 
 function handleClick(e) {
-    if (e.target.className === 'null') {
-        e.target.className = 'question';
+    if (e.target.dataset.showing === 'null') {
+        e.target.dataset.showing = 'question';
     }
-    else if (e.target.className === 'question') {
-        e.target.className = 'answer';
+    else if (e.target.dataset.showing === 'question') {
+        e.target.dataset.showing = 'answer';
     }
     else {
         removeEventListener('click', function () {
